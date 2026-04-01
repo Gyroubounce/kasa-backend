@@ -12,6 +12,9 @@ const { initialize } = require('./db');
 
 const app = express();
 
+// Désactive complètement le moteur de template
+app.set('views', path.join(__dirname, 'dummy-views'));
+app.set('view engine', 'html');
 /* -------------------------------------------------------
    CORS CONFIGURATION — VERSION FINALE
 -------------------------------------------------------- */
@@ -27,8 +30,6 @@ app.use(
   })
 );
 
-// Important pour les requêtes OPTIONS (preflight)
-app.options("*", cors());
 
 /* -------------------------------------------------------
    MIDDLEWARES
@@ -37,7 +38,8 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public/spec')));
+app.use('/spec', express.static(path.join(__dirname, 'public/spec')));
+
 
 /* -------------------------------------------------------
    DATABASE
