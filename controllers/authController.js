@@ -18,12 +18,23 @@ async function doRegister(req, res) {
 async function doLogin(req, res) {
   const db = req.app.locals.db;
   try {
-    const result = await login(db, req.body || {});
-    res.status(200).json(result);
+    const { token, user } = await login(db, req.body || {});
+
+    // Pose le cookie HTTP-only
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true, // mettre false en local si besoin
+      sameSite: "strict",
+      path: "/",
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 jours
+    });
+
+    res.status(200).json({ user });
   } catch (e) {
     res.status(statusFromError(e)).json({ error: e.message });
   }
 }
+
 
 async function doRequestReset(req, res) {
   const db = req.app.locals.db;
@@ -45,4 +56,14 @@ async function doResetPassword(req, res) {
   }
 }
 
-module.exports = { doRegister, doLogin, doRequestReset, doResetPassword };
+function doMe(req, res) {
+  res.json({ user: req.user });
+}
+
+function doLogout(req, res) {
+  res.clearCookie("token", { path: "/" });
+  res.json({ ok: true });
+}
+
+
+module.exports = { doRegister, doLogin, doRequestReset, doResetPassword, doMe, doLogout };

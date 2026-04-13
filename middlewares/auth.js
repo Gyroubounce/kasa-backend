@@ -3,16 +3,35 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me-in-prod';
 
 function authenticate(req, res, next) {
+  let token = null;
+
+  // 1) Lire le header Authorization (comme avant)
   const auth = req.headers['authorization'] || '';
-  const [scheme, token] = auth.split(' ');
-  if (scheme === 'Bearer' && token) {
+  const [scheme, headerToken] = auth.split(' ');
+  if (scheme === 'Bearer' && headerToken) {
+    token = headerToken;
+  }
+
+  // 2) Lire le cookie HTTP-only (nouveau)
+  if (!token && req.cookies?.token) {
+    token = req.cookies.token;
+  }
+
+  // 3) Vérifier le token si trouvé
+  if (token) {
     try {
       const payload = jwt.verify(token, JWT_SECRET);
-      req.user = { id: payload.id, role: payload.role, name: payload.name, email: payload.email };
+      req.user = {
+        id: payload.id,
+        role: payload.role,
+        name: payload.name,
+        email: payload.email
+      };
     } catch (e) {
-      // invalid token -> ignore for authenticate(), but requireAuth will block
+      // token invalide → req.user reste undefined
     }
   }
+
   next();
 }
 
@@ -45,8 +64,10 @@ function requireRole(roles = []) {
 function requireSelfOrAdmin(param = 'id') {
   return function (req, res, next) {
     requireAuth(req, res, () => {
-      const requestedId = String(req.params && req.params[param]);
-      if (req.user.role === 'admin' || String(req.user.id) === requestedId) return next();
+      const requestedId = String(req.params?.[param]);
+      if (req.user.role === 'admin' || String(req.user.id) === requestedId) {
+        return next();
+      }
       return res.status(403).json({ error: 'forbidden' });
     });
   };
