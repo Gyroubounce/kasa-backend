@@ -24,7 +24,7 @@ async function doLogin(req, res) {
     res.cookie("token", token, {
       httpOnly: true,
       secure: true, // mettre false en local si besoin
-      sameSite: "strict",
+      sameSite: "none",
       path: "/",
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 jours
     });
