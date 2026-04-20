@@ -61,9 +61,14 @@ function doMe(req, res) {
 }
 
 function doLogout(req, res) {
-  res.clearCookie("token", { path: "/" });
-  res.json({ ok: true });
-}
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    path: "/",
+  });
 
+  return res.status(200).json({ ok: true });
+}
 
 module.exports = { doRegister, doLogin, doRequestReset, doResetPassword, doMe, doLogout };
