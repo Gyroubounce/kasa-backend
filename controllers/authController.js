@@ -9,11 +9,22 @@ async function doRegister(req, res) {
   const db = req.app.locals.db;
   try {
     const result = await register(db, req.body || {});
-    res.status(201).json(result);
+
+    // 🔥 AJOUT : créer le cookie comme dans doLogin
+    res.cookie("token", result.token, {
+      httpOnly: true,
+      secure: true, // false en local si besoin
+      sameSite: "none",
+      path: "/",
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 jours
+    });
+
+    res.status(201).json({ user: result.user });
   } catch (e) {
     res.status(statusFromError(e)).json({ error: e.message });
   }
 }
+
 
 async function doLogin(req, res) {
   const db = req.app.locals.db;
