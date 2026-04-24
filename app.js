@@ -61,9 +61,10 @@ initialize()
 /* -------------------------------------------------------
    ROUTES
 -------------------------------------------------------- */
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/api', apiRouter);
 app.use('/auth', authRouter);
+app.use('/api', apiRouter);
 
+
+
+app.use('/', indexRouter);
 module.exports = app;

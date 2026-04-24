@@ -99,6 +99,35 @@ async function initSchema(db) {
   CREATE INDEX IF NOT EXISTS idx_properties_host ON properties(host_id);
   CREATE INDEX IF NOT EXISTS idx_ratings_property ON ratings(property_id);
   CREATE INDEX IF NOT EXISTS idx_ratings_user ON ratings(user_id);
+  
+    CREATE TABLE IF NOT EXISTS threads (
+    id TEXT PRIMARY KEY,                -- UUID string
+    user1_id INTEGER NOT NULL,          -- current user
+    user2_id INTEGER NOT NULL,          -- other user
+    last_message TEXT,
+    unread_user1 INTEGER DEFAULT 0,     -- unread count for user1
+    unread_user2 INTEGER DEFAULT 0,     -- unread count for user2
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user1_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(user2_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS messages (
+    id TEXT PRIMARY KEY,                -- UUID string
+    thread_id TEXT NOT NULL,
+    sender_id INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    read INTEGER DEFAULT 0,             -- 0 = unread, 1 = read
+    FOREIGN KEY(thread_id) REFERENCES threads(id) ON DELETE CASCADE,
+    FOREIGN KEY(sender_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_messages_thread ON messages(thread_id);
+  CREATE INDEX IF NOT EXISTS idx_threads_user1 ON threads(user1_id);
+  CREATE INDEX IF NOT EXISTS idx_threads_user2 ON threads(user2_id);
+
+  
   `;
 
   await db.execAsync(schema);

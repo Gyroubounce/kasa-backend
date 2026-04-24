@@ -9,6 +9,9 @@ const ratings = require('../controllers/ratingsController');
 const favorites = require('../controllers/favoritesController');
 const uploads = require('../controllers/uploadsController');
 
+// Messaging
+const messaging = require('../controllers/messagingController');
+
 // Ensure DB is ready for all API routes
 router.use(dbReady);
 
@@ -39,5 +42,19 @@ router.post('/uploads/image', requireRole(['owner','admin']), uploads.uploadImag
 
 // Delete one or multiple uploaded images by filename or URL
 router.delete('/uploads/images', requireRole(['owner','admin']), uploads.deleteImages);
+
+
+// Démarrer une conversation (HostCard)
+router.post('/messaging/start', requireAuth, messaging.startConversation);
+
+// Lister les threads de l'utilisateur
+router.get('/messaging/threads', requireAuth, messaging.listThreads);
+
+// Lister les messages d'un thread
+router.get('/messaging/threads/:id/messages', requireAuth, messaging.listMessages);
+
+// Envoyer un message dans un thread
+router.post('/messaging/threads/:id/messages', requireAuth, messaging.sendMessage);
+
 
 module.exports = router;
