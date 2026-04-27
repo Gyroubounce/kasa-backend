@@ -11,14 +11,16 @@ function statusFromError(e) {
 function getCookieConfig() {
   const isProd = process.env.NODE_ENV === "production";
 
-  return {
+  const config = {
     httpOnly: true,
     secure: isProd,                     // HTTPS obligatoire en prod
     sameSite: isProd ? "none" : "lax",  // none en prod, lax en local
     path: "/",
-    
     maxAge: 1000 * 60 * 60 * 24 * 7,    // 7 jours
   };
+
+  console.log("🔵 [BACKEND] COOKIE CONFIG:", config);
+  return config;
 }
 
 /* -------------------------------------------------------
@@ -27,9 +29,14 @@ function getCookieConfig() {
 async function doRegister(req, res) {
   const db = req.app.locals.db;
   try {
+    console.log("🔵 [BACKEND] doRegister → START");
+
     const result = await register(db, req.body || {});
 
-    res.cookie("token", result.token, getCookieConfig());
+    const cookieConfig = getCookieConfig();
+    res.cookie("token", result.token, cookieConfig);
+
+    console.log("🟢 [BACKEND] COOKIE SENT (REGISTER) →", result.token.slice(0, 20) + "...");
 
     res.status(201).json({ user: result.user });
   } catch (e) {
@@ -43,9 +50,14 @@ async function doRegister(req, res) {
 async function doLogin(req, res) {
   const db = req.app.locals.db;
   try {
+    console.log("🔵 [BACKEND] doLogin → START");
+
     const { token, user } = await login(db, req.body || {});
 
-    res.cookie("token", token, getCookieConfig());
+    const cookieConfig = getCookieConfig();
+    res.cookie("token", token, cookieConfig);
+
+    console.log("🟢 [BACKEND] COOKIE SENT (LOGIN) →", token.slice(0, 20) + "...");
 
     res.status(200).json({ user });
   } catch (e) {
@@ -89,12 +101,13 @@ function doMe(req, res) {
 function doLogout(req, res) {
   const isProd = process.env.NODE_ENV === "production";
 
+  console.log("🔵 [BACKEND] doLogout → CLEAR COOKIE");
+
   res.clearCookie("token", {
     httpOnly: true,
     secure: isProd,
     sameSite: isProd ? "none" : "lax",
     path: "/",
-    
   });
 
   return res.status(200).json({ ok: true });
