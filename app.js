@@ -12,24 +12,45 @@ const { initialize } = require('./db');
 
 const app = express();
 
-// Désactive complètement le moteur de template
+/* -------------------------------------------------------
+   TEMPLATE ENGINE DISABLED
+-------------------------------------------------------- */
 app.set('views', path.join(__dirname, 'dummy-views'));
 app.set('view engine', 'html');
+
 /* -------------------------------------------------------
-   CORS CONFIGURATION — VERSION FINALE
+   CORS — VERSION 100% COMPATIBLE VERCEL + RENDER
 -------------------------------------------------------- */
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://kasa-frontend-taupe.vercel.app"
+];
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-     "https://kasa-frontend-taupe.vercel.app"
-    ],
-    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+    origin: function (origin, callback) {
+      // Autorise les outils comme Postman (origin = undefined)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
+// Fix préflight OPTIONS
+app.options("*", cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 
 /* -------------------------------------------------------
    MIDDLEWARES
@@ -38,13 +59,11 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
 /* -------------------------------------------------------
    STATIC FILES
 -------------------------------------------------------- */
 app.use(express.static(path.join(__dirname, 'public')));
-
-
-
 
 /* -------------------------------------------------------
    DATABASE
@@ -63,8 +82,6 @@ initialize()
 -------------------------------------------------------- */
 app.use('/auth', authRouter);
 app.use('/api', apiRouter);
-
-
-
 app.use('/', indexRouter);
+
 module.exports = app;
