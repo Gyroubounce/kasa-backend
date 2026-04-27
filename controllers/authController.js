@@ -6,18 +6,18 @@ function statusFromError(e) {
 }
 
 /* -------------------------------------------------------
-   UTILITAIRE : CONFIG COOKIE SELON ENVIRONNEMENT
+   CONFIG COOKIE (LOCAL vs PRODUCTION)
 -------------------------------------------------------- */
 function getCookieConfig() {
   const isProd = process.env.NODE_ENV === "production";
 
   return {
     httpOnly: true,
-    secure: isProd,              // secure = true en production
-    sameSite: "none",            // obligatoire pour Vercel
+    secure: isProd,                     // HTTPS obligatoire en prod
+    sameSite: isProd ? "none" : "lax",  // none en prod, lax en local
     path: "/",
     domain: process.env.COOKIE_DOMAIN || "localhost",
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 jours
+    maxAge: 1000 * 60 * 60 * 24 * 7,    // 7 jours
   };
 }
 
@@ -87,10 +87,12 @@ function doMe(req, res) {
    LOGOUT
 -------------------------------------------------------- */
 function doLogout(req, res) {
+  const isProd = process.env.NODE_ENV === "production";
+
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
     path: "/",
     domain: process.env.COOKIE_DOMAIN || "localhost",
   });
