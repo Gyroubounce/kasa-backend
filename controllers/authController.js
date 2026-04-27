@@ -16,7 +16,7 @@ function getCookieConfig() {
     secure: isProd,                     // HTTPS obligatoire en prod
     sameSite: isProd ? "none" : "lax",  // none en prod, lax en local
     path: "/",
-    domain: process.env.COOKIE_DOMAIN || "localhost",
+    
     maxAge: 1000 * 60 * 60 * 24 * 7,    // 7 jours
   };
 }
@@ -94,7 +94,7 @@ function doLogout(req, res) {
     secure: isProd,
     sameSite: isProd ? "none" : "lax",
     path: "/",
-    domain: process.env.COOKIE_DOMAIN || "localhost",
+    
   });
 
   return res.status(200).json({ ok: true });
