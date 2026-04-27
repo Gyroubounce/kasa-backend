@@ -45,7 +45,7 @@ app.use(
 );
 
 // Fix préflight OPTIONS
-app.options("*", cors({
+app.options("/(.*)", cors({
   origin: allowedOrigins,
   credentials: true,
   methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
