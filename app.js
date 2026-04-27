@@ -19,7 +19,7 @@ app.set('views', path.join(__dirname, 'dummy-views'));
 app.set('view engine', 'html');
 
 /* -------------------------------------------------------
-   CORS — VERSION 100% COMPATIBLE VERCEL + RENDER
+   CORS — COMPATIBLE EXPRESS 5 + NODE 24 + RENDER + VERCEL
 -------------------------------------------------------- */
 const allowedOrigins = [
   "http://localhost:3000",
@@ -29,14 +29,9 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Autorise les outils comme Postman (origin = undefined)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      } else {
-        return callback(new Error("Not allowed by CORS"));
-      }
+      if (!origin) return callback(null, true); // Postman, Thunder Client
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
@@ -44,13 +39,19 @@ app.use(
   })
 );
 
-// Fix préflight OPTIONS
-app.options("/(.*)", cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+/* -------------------------------------------------------
+   FIX EXPRESS 5 — INTERCEPTER OPTIONS SANS WILDCARD
+-------------------------------------------------------- */
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") {
+    res.header("Access-Control-Allow-Origin", req.headers.origin);
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 /* -------------------------------------------------------
    MIDDLEWARES
