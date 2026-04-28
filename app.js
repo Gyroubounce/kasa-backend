@@ -72,7 +72,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 initialize()
   .then((db) => {
     app.locals.db = db;
-    console.log('Database initialized');
+  
   })
   .catch((err) => {
     console.error('Database initialization failed:', err);
