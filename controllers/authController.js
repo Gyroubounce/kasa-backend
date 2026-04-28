@@ -19,11 +19,6 @@ function getCookieConfig() {
     maxAge: 1000 * 60 * 60 * 24 * 7,    // 7 jours
   };
 
-  // ⭐ AJOUT CRUCIAL : domaine en production
-  if (isProd) {
-    config.domain = process.env.COOKIE_DOMAIN;
-  }
-
   console.log("🔵 [BACKEND] COOKIE CONFIG:", config);
   return config;
 }
@@ -113,7 +108,6 @@ function doLogout(req, res) {
     secure: isProd,
     sameSite: isProd ? "none" : "lax",
     path: "/",
-    ...(isProd ? { domain: process.env.COOKIE_DOMAIN } : {})
   });
 
   return res.status(200).json({ ok: true });
